@@ -6,5 +6,11 @@
   "editorType": [
     "figma"
   ],
-  "ui": "ui.html"
+  "ui": "ui.html",
+
+  "networkAccess": {
+  "allowedDomains": ["http://localhost:5000"],
+  "reasoning": "Development API for uploading SLDF designs.",
+  "devAllowedDomains": ["http://localhost:5000"]
+}
 }

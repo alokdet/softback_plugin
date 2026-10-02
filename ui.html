@@ -92,21 +92,13 @@
 </head>
 
 <body>
-
   <h2>SoftLauncher Exporter</h2>
+  <div class="description">Select exactly one Frame in Figma and export it as SoftLauncher Design Format (SLDF).</div>
 
-  <div class="description">
-    Select exactly one Frame in Figma and export it as
-    SoftLauncher Design Format (SLDF).
-  </div>
+  <button id="export">Export SLDF</button>
+  <button id="uploadButton">Upload to Server</button>
 
-  <button id="export">
-    Export SLDF
-  </button>
-
-  <div id="status">
-    Waiting for a Frame...
-  </div>
+  <div id="status">Waiting for a Frame...</div>
 
   <textarea
     id="output"
@@ -116,13 +108,9 @@
 
   <div class="buttons">
 
-```
 <button
   id="copy"
-  class="secondary"
->
-  Copy JSON
-</button>
+  class="secondary">Copy JSON</button>
 
 <button
   id="download"
@@ -130,142 +118,164 @@
 >
   Download
 </button>
-```
 
   </div>
 
   <script>
+  const exportButton = document.getElementById("export");
+  const copyButton = document.getElementById("copy");
+  const downloadButton = document.getElementById("download");
+  const uploadButton = document.getElementById("uploadButton");
 
-    const exportButton = document.getElementById("export");
-    const copyButton = document.getElementById("copy");
-    const downloadButton = document.getElementById("download");
-
-    const status = document.getElementById("status");
-    const output = document.getElementById("output");
-
-
-    // Request export from Figma
-    exportButton.onclick = () => {
-
-      status.textContent = "Exporting...";
-
-      parent.postMessage(
-        {
-          pluginMessage: {
-            type: "export"
-          }
-        },
-        "*"
-      );
-
-    };
+  const status = document.getElementById("status");
+  const output = document.getElementById("output");
 
 
-    // Receive messages from code.ts
-    window.onmessage = (event) => {
+  // Export SLDF
+  exportButton.onclick = () => {
 
-      const msg = event.data.pluginMessage;
+    status.textContent = "Exporting...";
 
-      if (!msg) {
-        return;
-      }
-
-
-      // Export successful
-      if (msg.type === "export-result") {
-
-        output.value = msg.data;
-
-        status.textContent =
-          "SLDF exported successfully.";
-
-      }
-
-
-      // Export error
-      if (msg.type === "error") {
-
-        status.textContent =
-          "Error: " + msg.message;
-
-        output.value = "";
-
-      }
-
-    };
-
-
-    // Copy JSON
-    copyButton.onclick = async () => {
-
-      if (!output.value) {
-
-        status.textContent =
-          "Nothing to copy.";
-
-        return;
-
-      }
-
-      try {
-
-        await navigator.clipboard.writeText(
-          output.value
-        );
-
-        status.textContent =
-          "JSON copied to clipboard.";
-
-      } catch (error) {
-
-        status.textContent =
-          "Could not copy JSON.";
-
-      }
-
-    };
-
-
-    // Download JSON
-    downloadButton.onclick = () => {
-
-      if (!output.value) {
-
-        status.textContent =
-          "Nothing to download.";
-
-        return;
-
-      }
-
-      const blob = new Blob(
-        [output.value],
-        {
-          type: "application/json"
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: "export"
         }
-      );
+      },
+      "*"
+    );
+  };
 
-      const url =
-        URL.createObjectURL(blob);
 
-      const link =
-        document.createElement("a");
+  // Upload SLDF
+  uploadButton.onclick = () => {
 
-      link.href = url;
+  console.log("UI: Upload button clicked");
 
-      link.download =
-        "softlauncher-scene.sldf.json";
+  status.textContent = "Sending upload request...";
 
-      link.click();
+  parent.postMessage(
+    {
+      pluginMessage: {
+        type: "upload"
+      }
+    },
+    "*"
+  );
 
-      URL.revokeObjectURL(url);
+  console.log("UI: Upload message sent");
+};
+
+
+  // Receive messages from code.ts
+  window.onmessage = (event) => {
+
+    const msg = event.data.pluginMessage;
+
+    if (!msg) {
+      return;
+    }
+
+
+    // Export successful
+    if (msg.type === "export-result") {
+
+      output.value = msg.data;
 
       status.textContent =
-        "SLDF file downloaded.";
+        "SLDF exported successfully.";
+    }
 
-    };
 
-  </script>
+    // Upload successful
+    if (msg.type === "upload-success") {
+
+      status.textContent =
+        "Design uploaded successfully.";
+
+      alert("Design uploaded successfully.");
+    }
+
+
+    // Error
+    if (msg.type === "error") {
+
+      status.textContent =
+        "Error: " + msg.message;
+
+      output.value = "";
+
+      console.error("Plugin error:", msg.message);
+    }
+  };
+
+
+  // Copy JSON
+  copyButton.onclick = async () => {
+
+    if (!output.value) {
+
+      status.textContent =
+        "Nothing to copy.";
+
+      return;
+    }
+
+    try {
+
+      await navigator.clipboard.writeText(
+        output.value
+      );
+
+      status.textContent =
+        "JSON copied to clipboard.";
+
+    } catch (error) {
+
+      status.textContent =
+        "Could not copy JSON.";
+    }
+  };
+
+
+  // Download JSON
+  downloadButton.onclick = () => {
+
+    if (!output.value) {
+
+      status.textContent =
+        "Nothing to download.";
+
+      return;
+    }
+
+    const blob = new Blob(
+      [output.value],
+      {
+        type: "application/json"
+      }
+    );
+
+    const url =
+      URL.createObjectURL(blob);
+
+    const link =
+      document.createElement("a");
+
+    link.href = url;
+
+    link.download =
+      "softlauncher-scene.sldf.json";
+
+    link.click();
+
+    URL.revokeObjectURL(url);
+
+    status.textContent =
+      "SLDF file downloaded.";
+  };
+
+</script>
 
 </body>
 </html>
